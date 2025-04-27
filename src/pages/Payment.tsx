@@ -4,12 +4,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { fetchSolanaPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +55,31 @@ const Payment = () => {
   }, [plan]);
 
   useEffect(() => {
+    const initTelegram = () => {
+      try {
+        // @ts-ignore
+        const tg = window.Telegram?.WebApp;
+        if (tg?.initDataUnsafe?.user?.id) {
+          const id = tg.initDataUnsafe.user.id.toString();
+          setTelegramId(id);
+          console.log("Telegram ID auto-filled:", id);
+        } else {
+          console.error("Telegram WebApp not detected.");
+          toast({
+            title: "Telegram Connection Error",
+            description: "Please open the bot via Telegram to continue.",
+            variant: "destructive",
+          });
+        }
+      } catch (err) {
+        console.error("Telegram init error", err);
+      }
+    };
+
+    initTelegram();
+  }, []);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     let timeout: NodeJS.Timeout;
 
@@ -77,7 +97,7 @@ const Payment = () => {
       timeout = setTimeout(() => {
         setPolling(false);
         setTimedOut(true);
-      }, 2 * 60 * 1000); // 2 minutes
+      }, 2 * 60 * 1000);
     }
 
     return () => {
@@ -90,7 +110,7 @@ const Payment = () => {
     if (!telegramId || !senderWallet) {
       toast({
         title: "Missing Information",
-        description: "Please enter both Telegram ID and Wallet Address.",
+        description: "Please connect via Telegram and enter your Sender Wallet.",
         variant: "destructive",
       });
       return;
@@ -158,16 +178,6 @@ const Payment = () => {
         </TabsContent>
       </Tabs>
 
-      <div className="mb-4">
-        <Label>Telegram ID</Label>
-        <Input
-          type="text"
-          placeholder="e.g. 7864352381"
-          value={telegramId}
-          onChange={(e) => setTelegramId(e.target.value)}
-        />
-      </div>
-
       <div className="mb-6">
         <Label>Sender Wallet Address</Label>
         <Input
@@ -193,16 +203,6 @@ const Payment = () => {
           Still pending? Contact support.
         </p>
       )}
-
-      <div className="text-sm text-muted-foreground mt-6">
-        <h3 className="font-semibold mb-1">How to find your Telegram ID:</h3>
-        <ol className="list-decimal ml-4 space-y-1">
-          <li>Open Telegram and search for @userinfobot</li>
-          <li>Start the bot and send it any message</li>
-          <li>It will reply with your Telegram ID</li>
-          <li>Copy and paste that number above</li>
-        </ol>
-      </div>
 
       <div className="mt-6 text-muted-foreground text-sm">
         <p><strong>Plan:</strong> {planNames[plan]}</p>
