@@ -45,7 +45,7 @@ const Payment = () => {
         const price = await fetchSolanaPrice();
         setSolPrice(price);
         const usdAmount = prices[plan as keyof typeof prices];
-        setSolAmount((usdAmount / price).toFixed(2));
+        setSolAmount((usdAmount / price).toFixed(4));
       } catch (error) {
         console.error("Failed to fetch SOL price:", error);
       }
@@ -53,7 +53,6 @@ const Payment = () => {
 
     fetchPrice();
   }, [plan]);
-
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -86,24 +85,27 @@ const Payment = () => {
     if (!username || !senderWallet) {
       toast({
         title: "Missing Information",
-        description: "Please connect via Telegram and enter your Sender Wallet.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
+
+    const sanitizedUsername = username.replace("@", "").toLowerCase();
 
     setLoading(true);
     setTimedOut(false);
 
     try {
       await setDoc(doc(db, "pending_wallets", senderWallet), {
-        username: username,
+        username: sanitizedUsername,
         wallet: senderWallet,
         plan: plan,
+        amount: parseFloat(solAmount), // ✅ saving exact SOL amount
         timestamp: new Date(),
       });
 
-      localStorage.setItem("username", username);
+      localStorage.setItem("username", sanitizedUsername);
       setPolling(true);
     } catch (error) {
       console.error("Error writing to Firestore:", error);
@@ -164,17 +166,15 @@ const Payment = () => {
         />
       </div>
 
-      {!username && (
-        <div className="mb-6">
-          <Label>Your Telegram Username (without @)</Label>
-          <Input
-            type="text"
-            placeholder="example: shade_crypto"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase())}
-          />
-        </div>
-      )}
+      <div className="mb-6">
+        <Label>Your Telegram Username</Label>
+        <Input
+          type="text"
+          placeholder="example: shade_crypto"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </div>
 
       <Button onClick={handleSubmit} disabled={loading || polling || solPrice === 0}>
         {loading ? "Submitting..." : polling ? "Checking payment..." : "I've Sent the SOL"}
