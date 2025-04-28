@@ -54,30 +54,6 @@ const Payment = () => {
     fetchPrice();
   }, [plan]);
 
-  useEffect(() => {
-    const initTelegram = () => {
-      try {
-        // @ts-ignore
-        const tg = window.Telegram?.WebApp;
-        if (tg?.initDataUnsafe?.user?.username) {
-          const usernameFromTelegram = tg.initDataUnsafe.user.username.toLowerCase();
-          setUsername(usernameFromTelegram);
-          console.log("Telegram username auto-filled:", usernameFromTelegram);
-        } else {
-          console.error("Telegram WebApp not detected.");
-          toast({
-            title: "Telegram Connection Error",
-            description: "Please open the bot via Telegram to continue.",
-            variant: "destructive",
-          });
-        }
-      } catch (err) {
-        console.error("Telegram init error", err);
-      }
-    };
-
-    initTelegram();
-  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
