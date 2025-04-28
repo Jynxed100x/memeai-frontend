@@ -176,7 +176,7 @@ const Payment = () => {
         </div>
       )}
 
-      <Button onClick={handleSubmit} disabled={loading || polling}>
+      <Button onClick={handleSubmit} disabled={loading || polling || solPrice === 0}>
         {loading ? "Submitting..." : polling ? "Checking payment..." : "I've Sent the SOL"}
       </Button>
 
@@ -195,7 +195,7 @@ const Payment = () => {
       <div className="mt-6 text-muted-foreground text-sm">
         <p><strong>Plan:</strong> {planNames[plan]}</p>
         <p><strong>Price (USD):</strong> ${prices[plan as keyof typeof prices]}</p>
-        <p><strong>SOL Price:</strong> ${solPrice}</p>
+        <p><strong>SOL Price:</strong> {solPrice ? `$${solPrice}` : "Loading..."}</p>
       </div>
     </div>
   );

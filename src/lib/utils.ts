@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -29,10 +28,10 @@ export async function fetchSolanaPrice(): Promise<number> {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
     const data = await response.json();
-    return data.solana?.usd || 0;
+    return data.solana?.usd || 140; // Fallback to $140 if API fails
   } catch (error) {
     console.error('Error fetching Solana price:', error);
-    return 0;
+    return 140; // Fallback to $140 if API fails
   }
 }
 
