@@ -167,13 +167,17 @@ const Payment = () => {
       </div>
 
       <div className="mb-6">
-        <Label>Your Telegram Username</Label>
-        <Input
-          type="text"
-          placeholder="example: shade_crypto"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+      <Label>Your Telegram Username (without @)</Label>
+      <Input
+        type="text"
+        placeholder="example: shade_crypto"
+        value={username}
+        onChange={(e) => {
+          const clean = e.target.value.replace(/^@/, "").toLowerCase();
+          setUsername(clean);
+        }}
+      />
+
       </div>
 
       <Button onClick={handleSubmit} disabled={loading || polling || solPrice === 0}>
