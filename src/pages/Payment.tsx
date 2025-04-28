@@ -24,7 +24,7 @@ const Payment = () => {
   const [solPrice, setSolPrice] = useState<number>(0);
   const [solAmount, setSolAmount] = useState<string>("0.00");
   const [loading, setLoading] = useState<boolean>(false);
-  const [telegramId, setTelegramId] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   const [senderWallet, setSenderWallet] = useState<string>("");
   const [polling, setPolling] = useState<boolean>(false);
   const [timedOut, setTimedOut] = useState<boolean>(false);
@@ -59,10 +59,10 @@ const Payment = () => {
       try {
         // @ts-ignore
         const tg = window.Telegram?.WebApp;
-        if (tg?.initDataUnsafe?.user?.id) {
-          const id = tg.initDataUnsafe.user.id.toString();
-          setTelegramId(id);
-          console.log("Telegram ID auto-filled:", id);
+        if (tg?.initDataUnsafe?.user?.username) {
+          const usernameFromTelegram = tg.initDataUnsafe.user.username.toLowerCase();
+          setUsername(usernameFromTelegram);
+          console.log("Telegram username auto-filled:", usernameFromTelegram);
         } else {
           console.error("Telegram WebApp not detected.");
           toast({
@@ -84,8 +84,8 @@ const Payment = () => {
     let timeout: NodeJS.Timeout;
 
     const checkAccess = async () => {
-      if (!telegramId) return;
-      const userRef = doc(db, "users", telegramId);
+      if (!username) return;
+      const userRef = doc(db, "users", username);
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         navigate("/dashboard");
@@ -104,10 +104,10 @@ const Payment = () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [polling, telegramId, navigate]);
+  }, [polling, username, navigate]);
 
   const handleSubmit = async () => {
-    if (!telegramId || !senderWallet) {
+    if (!username || !senderWallet) {
       toast({
         title: "Missing Information",
         description: "Please connect via Telegram and enter your Sender Wallet.",
@@ -121,13 +121,13 @@ const Payment = () => {
 
     try {
       await setDoc(doc(db, "pending_wallets", senderWallet), {
-        user_id: telegramId,
+        username: username,
         wallet: senderWallet,
         plan: plan,
         timestamp: new Date(),
       });
 
-      localStorage.setItem("telegram_id", telegramId);
+      localStorage.setItem("username", username);
       setPolling(true);
     } catch (error) {
       console.error("Error writing to Firestore:", error);
@@ -178,7 +178,7 @@ const Payment = () => {
         </TabsContent>
       </Tabs>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <Label>Sender Wallet Address</Label>
         <Input
           type="text"
@@ -187,6 +187,18 @@ const Payment = () => {
           onChange={(e) => setSenderWallet(e.target.value)}
         />
       </div>
+
+      {!username && (
+        <div className="mb-6">
+          <Label>Your Telegram Username (without @)</Label>
+          <Input
+            type="text"
+            placeholder="example: shade_crypto"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase())}
+          />
+        </div>
+      )}
 
       <Button onClick={handleSubmit} disabled={loading || polling}>
         {loading ? "Submitting..." : polling ? "Checking payment..." : "I've Sent the SOL"}
